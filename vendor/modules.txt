@@ -1,0 +1,9 @@
+# github.com/JoelOtter/termloop v0.0.0-20210806173944-5f7c38744afb
+## explicit
+github.com/JoelOtter/termloop
+# github.com/mattn/go-runewidth v0.0.9
+## explicit; go 1.9
+github.com/mattn/go-runewidth
+# github.com/nsf/termbox-go v1.1.1
+## explicit; go 1.15
+github.com/nsf/termbox-go
