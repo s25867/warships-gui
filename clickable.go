@@ -18,14 +18,14 @@ func (c *clickable) Tick(e tl.Event) {
 		c.processClick(e)
 	}
 
-	if setState && c.id == stateID {
-		c.stateChanged()
-	}
+	// if setState && c.id == stateID {
+	// 	c.stateChanged()
+	// }
 }
 
 func (c *clickable) processClick(e tl.Event) {
 	x, y := c.Position()
-	if e.MouseX >= x && e.MouseY >= y && e.MouseX <= (x+width*scale) && e.MouseY <= (y+height*scale) {
+	if e.MouseX >= x && e.MouseY >= y && e.MouseX <= (x+width) && e.MouseY <= (y+height) {
 		if wantClick {
 			defer func() { wantClick = false }()
 			boardChan <- c.id
@@ -33,14 +33,14 @@ func (c *clickable) processClick(e tl.Event) {
 	}
 }
 
-func (c *clickable) stateChanged() {
+// func (c *clickable) stateChanged() {
 
-	defer func() { setState = false }()
-	switch lastState {
-	case Hit:
-		c.SetColor(tl.ColorRed)
-	case Miss:
-		c.SetColor(tl.ColorBlack)
-	}
+// 	defer func() { setState = false }()
+// 	switch lastState {
+// 	case Hit:
+// 		c.SetColor(tl.ColorRed)
+// 	case Miss:
+// 		c.SetColor(tl.ColorBlack)
+// 	}
 
-}
+// }
