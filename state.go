@@ -7,12 +7,15 @@ import (
 type State string
 
 var (
-	Hit  State = "Hit"
+	// Hit means that some ship element is hit.
+	Hit State = "Hit"
+	// Miss means that shoot is missed.
 	Miss State = "Miss"
+	// Ship means that field represents whole ship element.
 	Ship State = "Ship"
 )
 
-func (s State) ColorAndText() (tl.Attr, string) {
+func (s State) colorAndText() (tl.Attr, string) {
 	switch s {
 	case Hit:
 		return tl.ColorRed, "H"
@@ -22,4 +25,18 @@ func (s State) ColorAndText() (tl.Attr, string) {
 		return tl.RgbTo256Color(139, 128, 0), "S"
 	}
 	return tl.ColorBlue, "~"
+}
+
+// clickAllowed returns true for states that are allowed to be clicked.
+func (s State) clickAllowed() bool {
+	switch s {
+	case Hit:
+		return false
+	case Miss:
+		return false
+	case Ship:
+		return true
+	}
+
+	return false
 }

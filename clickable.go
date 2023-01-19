@@ -2,6 +2,10 @@ package gui
 
 import tl "github.com/JoelOtter/termloop"
 
+var (
+	boardChan = make(chan string)
+)
+
 type clickable struct {
 	*tl.Rectangle
 	id string
@@ -17,10 +21,6 @@ func (c *clickable) Tick(e tl.Event) {
 	case tl.MouseLeft:
 		c.processClick(e)
 	}
-
-	// if setState && c.id == stateID {
-	// 	c.stateChanged()
-	// }
 }
 
 func (c *clickable) processClick(e tl.Event) {
@@ -32,15 +32,3 @@ func (c *clickable) processClick(e tl.Event) {
 		}
 	}
 }
-
-// func (c *clickable) stateChanged() {
-
-// 	defer func() { setState = false }()
-// 	switch lastState {
-// 	case Hit:
-// 		c.SetColor(tl.ColorRed)
-// 	case Miss:
-// 		c.SetColor(tl.ColorBlack)
-// 	}
-
-// }

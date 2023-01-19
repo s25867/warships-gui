@@ -2,32 +2,43 @@ package gui
 
 import (
 	"context"
-	"fmt"
 
 	tl "github.com/JoelOtter/termloop"
 )
 
 type Drawer interface {
-	DrawBoard(ctx context.Context, x, y int, status [10][10]State)
-	DrawBoardAndCatchCoords(ctx context.Context, x, y int, status [10][10]State) string
-	DrawText(ctx context.Context, x, y int, text string)
-
-	//DrawTextAndCatchInput(ctx context.Context, x, y int, text string) string
-	// GetCoords(ctx context.Context) string
-	// SetState(ctx context.Context, coords string, state State)
+	IsClosed() bool
+	DrawBoard(ctx context.Context, x, y int, states [10][10]State)
+	DrawBoardAndCatchCoords(ctx context.Context, x, y int, states [10][10]State) string
+	DrawText(ctx context.Context, x, y int, text string) *Text
+	RemoveText(ctx context.Context, t *Text)
 }
 
 type drawer struct {
 	game *tl.Game
+	done bool
 }
 
 func NewDrawer(ctx context.Context) Drawer {
 	game := tl.NewGame()
 	game.Screen().SetFps(60)
 
-	go game.Start()
+	game.SetEndKey(tl.KeySpace)
 
-	return &drawer{game: game}
+	d := &drawer{game: game}
+
+	go func() {
+		game.Start()
+		d.done = true
+	}()
+
+	return d
+}
+
+// IsClosed returns information about current game.
+// When game should be quitted then it returns 'true'.
+func (d drawer) IsClosed() bool {
+	return d.done
 }
 
 const (
@@ -37,9 +48,6 @@ const (
 
 var (
 	wantClick = false
-	// setState  = false
-	// lastState State
-	// stateID   string
 )
 
 func (d drawer) DrawBoard(ctx context.Context, x, y int, status [10][10]State) {
@@ -54,39 +62,44 @@ func (d drawer) DrawBoardAndCatchCoords(ctx context.Context, x, y int, status [1
 }
 
 func (d drawer) drawBoard(ctx context.Context, x, y int, status [10][10]State, clickable bool) {
-	var letters = []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}
+	board := newBoard(x, y)
 
-	for i := 1; i < 11; i++ {
-		newX := i * width
-		d.game.Screen().AddEntity(tl.NewRectangle(x+newX+i, y, width, height, tl.ColorWhite))
-		d.game.Screen().AddEntity(tl.NewText(x+newX+i+(width/2), y+(height/2), letters[i-1], tl.ColorBlack, tl.ColorWhite))
-
-		newY := i * height
-		d.game.Screen().AddEntity(tl.NewRectangle(x, y+newY+i, width, height, tl.ColorWhite))
-		d.game.Screen().AddEntity(tl.NewText(x+(width/2), y+newY+i+(height/2), fmt.Sprintf("%d", i), tl.ColorBlack, tl.ColorWhite))
+	for _, rec := range board.Rectangles {
+		d.game.Screen().AddEntity(rec)
+	}
+	for _, t := range board.Texts {
+		d.game.Screen().AddEntity(t)
 	}
 
-	for i := 1; i < 11; i++ {
-		for j := 1; j < 11; j++ {
-			newX := i * width
-			newY := j * height
-			color, text := status[i-1][j-1].ColorAndText()
+	if clickable {
+		board.drawClicableStates(ctx, x, y, status)
+	} else {
+		board.drawStates(ctx, x, y, status)
+	}
 
-			if clickable {
-				d.game.Screen().AddEntity(
-					newClickable(
-						fmt.Sprintf("%s%d", letters[i-1], j),
-						tl.NewRectangle(x+newX+i, y+newY+j, width, height, color)))
-			} else {
-				d.game.Screen().AddEntity(tl.NewRectangle(x+newX+i, y+newY+j, width, height, color))
-			}
-			d.game.Screen().AddEntity(tl.NewText(x+newX+i+(width/2), y+newY+j+(height/2), text, tl.ColorBlack, color))
-		}
+	for _, cs := range board.ClicableStates {
+		d.game.Screen().AddEntity(cs)
+	}
+	for _, ss := range board.States {
+		d.game.Screen().AddEntity(ss)
+	}
+	for _, st := range board.StatesTexts {
+		d.game.Screen().AddEntity(st)
 	}
 }
 
-func (d *drawer) DrawText(ctx context.Context, x, y int, text string) {
-	d.game.Screen().AddEntity(tl.NewText(x, y, text, tl.ColorWhite, tl.ColorBlack))
+// DrawText creates a new Text, at position (x, y).
+// It sets the Text's text to be text.
+// Returns a pointer to the new Text.
+func (d *drawer) DrawText(ctx context.Context, x, y int, text string) *Text {
+	t := newText(tl.NewText(x, y, text, defaultTextFG, defaultTextBG))
+	d.game.Screen().AddEntity(t)
+	return t
+}
+
+// RemoveText removes existing Text from screen.
+func (d *drawer) RemoveText(ctx context.Context, t *Text) {
+	d.game.Screen().RemoveEntity(t)
 }
 
 // func (d *drawer) DrawTextAndCatchInput(ctx context.Context, x, y int, text string) string {
