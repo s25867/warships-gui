@@ -35,8 +35,8 @@ func (s State) clickAllowed() bool {
 	case Miss:
 		return false
 	case Ship:
-		return true
+		return false
 	}
 
-	return false
+	return true
 }

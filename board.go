@@ -50,8 +50,8 @@ func newBoard(x, y int) *Board {
 func (b *Board) drawStates(ctx context.Context, x, y int, states [10][10]State) *Board {
 	for i := 1; i < 11; i++ {
 		for j := 1; j < 11; j++ {
-			newX := i * width
-			newY := j * height
+			newX := i*width + i
+			newY := j*height + j
 			color, text := states[i-1][j-1].colorAndText()
 
 			b.States = append(b.States, tl.NewRectangle(x+newX, y+newY, width, height, color))
@@ -69,12 +69,12 @@ func (b *Board) drawClicableStates(ctx context.Context, x, y int, states [10][10
 			newY := j*height + j
 			color, text := states[i-1][j-1].colorAndText()
 
+			rec := tl.NewRectangle(x+newX, y+newY, width, height, color)
 			if states[i-1][j-1].clickAllowed() {
 				b.ClicableStates = append(b.ClicableStates, newClickable(
-					fmt.Sprintf("%s%d", letters[i-1], j),
-					tl.NewRectangle(x+newX+i, y+newY+j, width, height, color)))
+					fmt.Sprintf("%s%d", letters[i-1], j), rec))
 			} else {
-				b.States = append(b.States, tl.NewRectangle(x+newX, y+newY, width, height, color))
+				b.States = append(b.States, rec)
 			}
 
 			b.StatesTexts = append(b.StatesTexts, tl.NewText(x+newX+(width/2), y+newY+(height/2), text, tl.ColorBlack, color))
