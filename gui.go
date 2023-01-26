@@ -6,6 +6,7 @@ import (
 	tl "github.com/JoelOtter/termloop"
 )
 
+// Drawer exposes methods available when new game starts.
 type Drawer interface {
 	IsClosed() bool
 	DrawBoard(ctx context.Context, x, y int, states [10][10]State)
@@ -19,6 +20,8 @@ type drawer struct {
 	done bool
 }
 
+// NewDrawer returns new instance of Drawer interface.
+// It starts game in a new gouritine and takes control above the terminal.
 func NewDrawer(ctx context.Context) Drawer {
 	game := tl.NewGame()
 	game.Screen().SetFps(60)
@@ -36,29 +39,39 @@ func NewDrawer(ctx context.Context) Drawer {
 }
 
 // IsClosed returns information about current game.
-// When game should be quitted then it returns 'true'.
+// When game is already closed then it returns 'true'.
 func (d drawer) IsClosed() bool {
 	return d.done
 }
 
-const (
-	width  = 3
-	height = 1
-)
-
-var (
-	wantClick = false
-)
-
-func (d drawer) DrawBoard(ctx context.Context, x, y int, status [10][10]State) {
-	d.drawBoard(ctx, x, y, status, false)
+// DrawBoard draws 10x10 board with left upper corner begins at (x,y) point.
+// It fills fields as it's given in 'states' argument.
+func (d drawer) DrawBoard(ctx context.Context, x, y int, states [10][10]State) {
+	d.drawBoard(ctx, x, y, states, false)
 }
 
-func (d drawer) DrawBoardAndCatchCoords(ctx context.Context, x, y int, status [10][10]State) string {
-	d.drawBoard(ctx, x, y, status, true)
+// DrawBoardAndCatchCoords does same as 'DrawBoard' method.
+// But after drawing it waits for mouse action that returns clicked field, e.g. "B6".
+// This allows to click only on the "see state".
+func (d drawer) DrawBoardAndCatchCoords(ctx context.Context, x, y int, states [10][10]State) string {
+	d.drawBoard(ctx, x, y, states, true)
 	wantClick = true
 
 	return <-boardChan
+}
+
+// DrawText creates a new Text at position (x, y).
+// It sets the Text's text to be text.
+// Returns a pointer to the new Text.
+func (d *drawer) DrawText(ctx context.Context, x, y int, text string) *Text {
+	t := newText(tl.NewText(x, y, text, defaultTextFG, defaultTextBG))
+	d.game.Screen().AddEntity(t)
+	return t
+}
+
+// RemoveText removes existing Text from screen.
+func (d *drawer) RemoveText(ctx context.Context, t *Text) {
+	d.game.Screen().RemoveEntity(t)
 }
 
 func (d drawer) drawBoard(ctx context.Context, x, y int, status [10][10]State, clickable bool) {
@@ -87,47 +100,3 @@ func (d drawer) drawBoard(ctx context.Context, x, y int, status [10][10]State, c
 		d.game.Screen().AddEntity(st)
 	}
 }
-
-// DrawText creates a new Text, at position (x, y).
-// It sets the Text's text to be text.
-// Returns a pointer to the new Text.
-func (d *drawer) DrawText(ctx context.Context, x, y int, text string) *Text {
-	t := newText(tl.NewText(x, y, text, defaultTextFG, defaultTextBG))
-	d.game.Screen().AddEntity(t)
-	return t
-}
-
-// RemoveText removes existing Text from screen.
-func (d *drawer) RemoveText(ctx context.Context, t *Text) {
-	d.game.Screen().RemoveEntity(t)
-}
-
-// func (d *drawer) DrawTextAndCatchInput(ctx context.Context, x, y int, text string) string {
-// 	t := newInputText(tl.NewText(x, y, text, tl.ColorWhite, tl.ColorBlack))
-
-// 	d.game.Screen().AddEntity(t)
-
-// 	for <-t.done {
-// 		// d.game.Screen().RemoveEntity(t)
-// 		return t.readValue
-// 	}
-
-// 	return ""
-// }
-
-// func (d *drawer) GetCoords(ctx context.Context) string {
-// 	wantClick = true
-// 	return <-boardChan
-// }
-
-// func (d *drawer) SetState(ctx context.Context, coords string, state State) {
-// 	switch state {
-// 	case Hit:
-// 		lastState = Hit
-// 	case Miss:
-// 		lastState = Miss
-// 	}
-
-// 	stateID = coords
-// 	setState = true
-// }

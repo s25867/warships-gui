@@ -4,6 +4,7 @@ import tl "github.com/JoelOtter/termloop"
 
 var (
 	boardChan = make(chan string)
+	wantClick = false
 )
 
 type clickable struct {
@@ -25,7 +26,7 @@ func (c *clickable) Tick(e tl.Event) {
 
 func (c *clickable) processClick(e tl.Event) {
 	x, y := c.Position()
-	if e.MouseX >= x && e.MouseY >= y && e.MouseX <= (x+width) && e.MouseY <= (y+height) {
+	if e.MouseX >= x && e.MouseY >= y && e.MouseX <= (x+fieldWidth) && e.MouseY <= (y+fieldHeight) {
 		if wantClick {
 			defer func() { wantClick = false }()
 			boardChan <- c.id

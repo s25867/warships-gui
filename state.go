@@ -4,6 +4,7 @@ import (
 	tl "github.com/JoelOtter/termloop"
 )
 
+// State represents available object that can be draw on the Board.
 type State string
 
 var (
