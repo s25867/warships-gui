@@ -2,6 +2,8 @@ package gui
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	tl "github.com/JoelOtter/termloop"
 )
@@ -36,6 +38,44 @@ func NewDrawer(ctx context.Context) Drawer {
 	}()
 
 	return d
+}
+
+func NewDrawerWithOpts(o *Opts) (Drawer, error) {
+	game := tl.NewGame()
+	game.Screen().SetFps(60)
+
+	endKey := tl.KeySpace
+	if o.EndKey != 0 {
+		endKey = o.EndKey
+	}
+	game.SetEndKey(endKey)
+
+	for k, v := range o.BasicStateColors {
+		r, b, g, err := rgbFromString(v)
+		if err != nil {
+			return nil, err
+		}
+		colorState[k] = tl.RgbTo256Color(r, g, b)
+	}
+
+	d := &drawer{game: game}
+
+	go func() {
+		game.Start()
+		d.done = true
+	}()
+
+	return d, nil
+}
+
+type Opts struct {
+	// EndKey is an end character using to exit game, 'space' is default.
+	EndKey tl.Key
+
+	// BasicStateColors allows overwriting of any State to own RGB representation of color.
+	// It has to be separated by '.' e.g. "120,0,19".
+	// You don't need to set each of State but only this ones with should have got different color than default.
+	BasicStateColors map[State]string
 }
 
 // IsClosed returns information about current game.
@@ -99,4 +139,16 @@ func (d drawer) drawBoard(ctx context.Context, x, y int, status [10][10]State, c
 	for _, st := range board.StatesTexts {
 		d.game.Screen().AddEntity(st)
 	}
+}
+
+func rgbFromString(s string) (int, int, int, error) {
+	var colors [3]int
+	for i, e := range strings.Split(s, ",") {
+		n, err := strconv.Atoi(e)
+		if err != nil {
+			return -1, -1, -1, err
+		}
+		colors[i] = n
+	}
+	return colors[0], colors[1], colors[2], nil
 }
