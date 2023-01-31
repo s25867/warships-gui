@@ -116,16 +116,18 @@ func (d *drawer) RemoveBoard(ctx context.Context, b *Board) {
 	}
 }
 
-// DrawText creates a new Text at position (x, y).
-// It sets the Text's text to be text.
-// Returns a pointer to the new Text.
-func (d *drawer) DrawText(ctx context.Context, x, y int, text string, tc *TextConfig) (*Text, error) {
-	t, err := newText(x, y, text, tc)
+// NewText returns new instance of Text object.
+func (d drawer) NewText(x, y int, tc *TextConfig) (*Text, error) {
+	t, err := newText(x, y, tc)
 	if err != nil {
 		return nil, err
 	}
-	d.game.Screen().AddEntity(t)
 	return t, nil
+}
+
+// DrawText writes given Text object into terminal.
+func (d *drawer) DrawText(ctx context.Context, t *Text) {
+	d.game.Screen().AddEntity(t)
 }
 
 // RemoveText removes existing Text from screen.

@@ -17,7 +17,7 @@ type TextConfig struct {
 	BackgroundColor string
 }
 
-func newText(x, y int, text string, tc *TextConfig) (*Text, error) {
+func newText(x, y int, tc *TextConfig) (*Text, error) {
 	fgColor, bgColor := defaultTextFG, defaultTextBG
 	if tc != nil && tc.ForegroundColor != "" {
 		r, b, g, err := rgbFromString(tc.ForegroundColor)
@@ -33,7 +33,7 @@ func newText(x, y int, text string, tc *TextConfig) (*Text, error) {
 		}
 		bgColor = tl.RgbTo256Color(r, g, b)
 	}
-	t := tl.NewText(x, y, text, fgColor, bgColor)
+	t := tl.NewText(x, y, "", fgColor, bgColor)
 
 	return &Text{Text: t}, nil
 }
