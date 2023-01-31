@@ -1,6 +1,8 @@
 package gui
 
-import tl "github.com/JoelOtter/termloop"
+import (
+	tl "github.com/JoelOtter/termloop"
+)
 
 var (
 	boardChan = make(chan string)

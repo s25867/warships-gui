@@ -2,19 +2,14 @@ package gui
 
 import (
 	"context"
-	"strconv"
-	"strings"
 
 	tl "github.com/JoelOtter/termloop"
 )
 
-// Drawer exposes methods available when new game starts.
-type Drawer interface {
-	IsClosed() bool
-	DrawBoard(ctx context.Context, x, y int, states [10][10]State)
-	DrawBoardAndCatchCoords(ctx context.Context, x, y int, states [10][10]State) string
-	DrawText(ctx context.Context, x, y int, text string) *Text
-	RemoveText(ctx context.Context, t *Text)
+// Config holds customizable parameters for drawer.
+type Config struct {
+	// EndKey is an end character using to exit game, 'space' is default.
+	EndKey tl.Key
 }
 
 type drawer struct {
@@ -22,13 +17,17 @@ type drawer struct {
 	done bool
 }
 
-// NewDrawer returns new instance of Drawer interface.
+// NewDrawer returns new instance of drawer struct.
 // It starts game in a new gouritine and takes control above the terminal.
-func NewDrawer(ctx context.Context) Drawer {
+func NewDrawer(c *Config) *drawer {
 	game := tl.NewGame()
 	game.Screen().SetFps(60)
 
-	game.SetEndKey(tl.KeySpace)
+	endKey := tl.KeySpace
+	if c.EndKey != 0 {
+		endKey = c.EndKey
+	}
+	game.SetEndKey(endKey)
 
 	d := &drawer{game: game}
 
@@ -40,64 +39,81 @@ func NewDrawer(ctx context.Context) Drawer {
 	return d
 }
 
-func NewDrawerWithOpts(o *Opts) (Drawer, error) {
-	game := tl.NewGame()
-	game.Screen().SetFps(60)
-
-	endKey := tl.KeySpace
-	if o.EndKey != 0 {
-		endKey = o.EndKey
-	}
-	game.SetEndKey(endKey)
-
-	for k, v := range o.BasicStateColors {
-		r, b, g, err := rgbFromString(v)
-		if err != nil {
-			return nil, err
-		}
-		colorState[k] = tl.RgbTo256Color(r, g, b)
-	}
-
-	d := &drawer{game: game}
-
-	go func() {
-		game.Start()
-		d.done = true
-	}()
-
-	return d, nil
+// IsGameRunning returns information about current game.
+// It returns 'true' when game is in progress
+// or returns 'false' when game is finished.
+func (d drawer) IsGameRunning() bool {
+	return !d.done
 }
 
-type Opts struct {
-	// EndKey is an end character using to exit game, 'space' is default.
-	EndKey tl.Key
-
-	// BasicStateColors allows overwriting of any State to own RGB representation of color.
-	// It has to be separated by '.' e.g. "120,0,19".
-	// You don't need to set each of State but only this ones with should have got different color than default.
-	BasicStateColors map[State]string
-}
-
-// IsClosed returns information about current game.
-// When game is already closed then it returns 'true'.
-func (d drawer) IsClosed() bool {
-	return d.done
+// NewBoard creates new instance of Board at given (x,y) position.
+func (d drawer) NewBoard(x, y int, c *BoardConfig) (*Board, error) {
+	return newBoard(x, y, c)
 }
 
 // DrawBoard draws 10x10 board with left upper corner begins at (x,y) point.
 // It fills fields as it's given in 'states' argument.
-func (d drawer) DrawBoard(ctx context.Context, x, y int, states [10][10]State) {
-	d.drawBoard(ctx, x, y, states, false)
+func (d *drawer) DrawBoard(ctx context.Context, b *Board, states [10][10]State) {
+	for _, v := range b.clicableStates {
+		d.game.Screen().RemoveEntity(v)
+	}
+	b.clicableStates = nil
+	for _, v := range b.states {
+		d.game.Screen().RemoveEntity(v)
+	}
+	b.states = nil
+	for _, v := range b.statesTexts {
+		d.game.Screen().RemoveEntity(v)
+	}
+	b.statesTexts = nil
+
+	b.setStates(states)
+
+	d.drawBoard(ctx, b)
 }
 
 // DrawBoardAndCatchCoords does same as 'DrawBoard' method.
 // But after drawing it waits for mouse action that returns clicked field, e.g. "B6".
 // This allows to click only on the "see state".
-func (d drawer) DrawBoardAndCatchCoords(ctx context.Context, x, y int, states [10][10]State) string {
-	d.drawBoard(ctx, x, y, states, true)
+func (d *drawer) DrawBoardAndCatchCoords(ctx context.Context, b *Board, states [10][10]State) string {
+	for _, v := range b.clicableStates {
+		d.game.Screen().RemoveEntity(v)
+	}
+	b.clicableStates = nil
+	for _, v := range b.states {
+		d.game.Screen().RemoveEntity(v)
+	}
+	b.states = nil
+	for _, v := range b.statesTexts {
+		d.game.Screen().RemoveEntity(v)
+	}
+	b.statesTexts = nil
+
+	b.setClicableStates(states)
+
+	d.drawBoard(ctx, b)
 	wantClick = true
 
 	return <-boardChan
+}
+
+// RemoveBoard removes existing Board from screen.
+func (d *drawer) RemoveBoard(ctx context.Context, b *Board) {
+	for _, v := range b.rectangles {
+		d.game.Screen().RemoveEntity(v)
+	}
+	for _, v := range b.texts {
+		d.game.Screen().RemoveEntity(v)
+	}
+	for _, v := range b.clicableStates {
+		d.game.Screen().RemoveEntity(v)
+	}
+	for _, v := range b.states {
+		d.game.Screen().RemoveEntity(v)
+	}
+	for _, v := range b.statesTexts {
+		d.game.Screen().RemoveEntity(v)
+	}
 }
 
 // DrawText creates a new Text at position (x, y).
@@ -114,41 +130,24 @@ func (d *drawer) RemoveText(ctx context.Context, t *Text) {
 	d.game.Screen().RemoveEntity(t)
 }
 
-func (d drawer) drawBoard(ctx context.Context, x, y int, status [10][10]State, clickable bool) {
-	board := newBoard(x, y)
-
-	for _, rec := range board.Rectangles {
-		d.game.Screen().AddEntity(rec)
-	}
-	for _, t := range board.Texts {
-		d.game.Screen().AddEntity(t)
-	}
-
-	if clickable {
-		board.drawClicableStates(ctx, x, y, status)
-	} else {
-		board.drawStates(ctx, x, y, status)
+func (d *drawer) drawBoard(ctx context.Context, b *Board) {
+	if !b.borderDrawed {
+		for _, v := range b.rectangles {
+			d.game.Screen().AddEntity(v)
+		}
+		for _, v := range b.texts {
+			d.game.Screen().AddEntity(v)
+		}
+		b.borderDrawed = true
 	}
 
-	for _, cs := range board.ClicableStates {
+	for _, cs := range b.clicableStates {
 		d.game.Screen().AddEntity(cs)
 	}
-	for _, ss := range board.States {
+	for _, ss := range b.states {
 		d.game.Screen().AddEntity(ss)
 	}
-	for _, st := range board.StatesTexts {
+	for _, st := range b.statesTexts {
 		d.game.Screen().AddEntity(st)
 	}
-}
-
-func rgbFromString(s string) (int, int, int, error) {
-	var colors [3]int
-	for i, e := range strings.Split(s, ",") {
-		n, err := strconv.Atoi(e)
-		if err != nil {
-			return -1, -1, -1, err
-		}
-		colors[i] = n
-	}
-	return colors[0], colors[1], colors[2], nil
 }

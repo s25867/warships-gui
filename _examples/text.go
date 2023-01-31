@@ -12,7 +12,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	d := gui.NewDrawer(ctx)
+	d := gui.NewDrawer(&gui.Config{})
 
 	t := d.DrawText(ctx, 2, 2, "Example text.")
 	defer d.RemoveText(ctx, t) // it's not necessary, but it's a good practice to cleanup when have that possibility
@@ -22,7 +22,7 @@ func main() {
 	t.SetText("Example text after 5 seconds of sleeping")
 
 	for {
-		if d.IsClosed() { // wait until escape character has been pressed
+		if !d.IsGameRunning() { // wait until escape character has been pressed
 			return
 		}
 	}

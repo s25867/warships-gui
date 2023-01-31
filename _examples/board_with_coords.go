@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 
 	gui "github.com/grupawp/warships-gui"
 )
@@ -13,16 +14,21 @@ import (
 func main() {
 	ctx := context.Background()
 
-	d := gui.NewDrawer(ctx)
+	d := gui.NewDrawer(&gui.Config{})
+
+	b, err := d.NewBoard(2, 4, &gui.BoardConfig{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer d.RemoveBoard(ctx, b)
+
+	coords := d.DrawBoardAndCatchCoords(ctx, b, [10][10]gui.State{}) // draw empty board at position (2,4)
 
 	t := d.DrawText(ctx, 2, 2, "") // initialize some text object
-
-	coords := d.DrawBoardAndCatchCoords(ctx, 2, 4, [10][10]gui.State{}) // draw empty board at position (2,4)
-
 	t.SetText(fmt.Sprintf("You clicked: %v ", coords))
 
 	for {
-		if d.IsClosed() { // wait until escape character has been pressed
+		if !d.IsGameRunning() { // wait until escape character has been pressed
 			return
 		}
 	}
