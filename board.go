@@ -18,7 +18,7 @@ const (
 
 var letters = []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}
 
-// BoardConfig holds configuration parameters for Baord struct.
+// BoardConfig holds configuration parameters for Board struct.
 type BoardConfig struct {
 	HitColor  string
 	MissColor string

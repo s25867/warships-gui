@@ -7,7 +7,7 @@ import (
 // State represents available object that can be draw on the Board.
 type State string
 
-var (
+const (
 	// Hit means that some ship element is hit.
 	Hit State = "Hit"
 	// Miss means that shoot is missed.
