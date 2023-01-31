@@ -81,18 +81,34 @@ d.DrawBoard(ctx, b, states)
 ```
 
 ## Drawing a text
-Drawing a text is similar like drawing a board. Everything that you need is to create a new **Text** instance:
+Drawing a text is similar like drawing a board. Everything that you need is to create a new **Text** instance using:
 ```go
-// DrawText creates a new Text at position (x, y).
-// It sets the Text's text to be text.
-// Returns a pointer to the new Text.
-func (d *drawer) DrawText(ctx context.Context, x, y int, text string) *Text
+// NewText returns new instance of Text object.
+func (d drawer) NewText(x, y int, tc *TextConfig) (*Text, error)
 ```
-You can change value of the **Text** at any time by calling:
+A **TextConfig** struct allows you to modify default values of a **Text** object and it has a struct like:
+```go
+// TextConfig holds configuration parameters for Text struct.
+type TextConfig struct {
+	ForegroundColor string
+	BackgroundColor string
+}
+```
+Colors are parsing same as a **Board** colors, it's a RGB string.
+
+When you have a **Text** instance, then you can specify a text by calling:
 ```go
 // SetText sets the text of the Text to be text and returns Text.
 func (t *Text) SetText(text string) *Text
 ```
+You can change value of the **Text** at any time.
+
+After all don't forget to print an object into screen:
+```go
+// DrawText writes given Text object into terminal.
+func (d *drawer) DrawText(ctx context.Context, t *Text) 
+```
+
 
 ## Removing elements 
 Our GUI supports removing objects from **Drawer**. To do it you should call one of the methods below:
