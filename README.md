@@ -6,7 +6,7 @@ Otherwise see simpler solution:
 - https://github.com/grupawp/warships-lightgui
 
 ## Quick Start
-To start a new game and take control under terminal use **NewDrawer()** method as below:
+To start a new game and take control above terminal use **NewDrawer()** method as below:
 ```go
 d := gui.NewDrawer(&gui.Config{})
 ```
