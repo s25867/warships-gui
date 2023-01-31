@@ -24,7 +24,10 @@ func main() {
 
 	coords := d.DrawBoardAndCatchCoords(ctx, b, [10][10]gui.State{}) // draw empty board at position (2,4)
 
-	t := d.DrawText(ctx, 2, 2, "") // initialize some text object
+	t, err := d.DrawText(ctx, 2, 2, "", nil) // initialize some text object
+	if err != nil {
+		log.Fatal(err)
+	}
 	t.SetText(fmt.Sprintf("You clicked: %v ", coords))
 
 	for {

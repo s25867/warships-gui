@@ -2,16 +2,11 @@ package gui
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	tl "github.com/JoelOtter/termloop"
 )
 
 const (
-	defaultTextBG = tl.ColorWhite
-	defaultTextFG = tl.ColorBlack
-
 	fieldWidth  = 3
 	fieldHeight = 1
 )
@@ -113,18 +108,6 @@ func (b *Board) setClicableStates(states [10][10]State) *Board {
 	}
 
 	return b
-}
-
-func rgbFromString(s string) (int, int, int, error) {
-	var colors [3]int
-	for i, e := range strings.Split(s, ",") {
-		n, err := strconv.Atoi(e)
-		if err != nil {
-			return -1, -1, -1, err
-		}
-		colors[i] = n
-	}
-	return colors[0], colors[1], colors[2], nil
 }
 
 func stateFromConfOrDefault(s State, confColor, confChar string) (stateColorAndChar, error) {

@@ -119,10 +119,13 @@ func (d *drawer) RemoveBoard(ctx context.Context, b *Board) {
 // DrawText creates a new Text at position (x, y).
 // It sets the Text's text to be text.
 // Returns a pointer to the new Text.
-func (d *drawer) DrawText(ctx context.Context, x, y int, text string) *Text {
-	t := newText(tl.NewText(x, y, text, defaultTextFG, defaultTextBG))
+func (d *drawer) DrawText(ctx context.Context, x, y int, text string, tc *TextConfig) (*Text, error) {
+	t, err := newText(x, y, text, tc)
+	if err != nil {
+		return nil, err
+	}
 	d.game.Screen().AddEntity(t)
-	return t
+	return t, nil
 }
 
 // RemoveText removes existing Text from screen.
