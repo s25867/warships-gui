@@ -28,8 +28,8 @@ func NewGUI(debug bool) *GUI {
 
 // Start displays the GUI and blocks until the it exits.
 // If endKey is not nil, the GUI will exit when the key is pressed.
-// Default if Ctrl + C.
-func (g GUI) Start(endKey *tl.Key) {
+// Default if Ctrl+C.
+func (g *GUI) Start(endKey *tl.Key) {
 	if endKey != nil {
 		g.game.SetEndKey(*endKey)
 	}
