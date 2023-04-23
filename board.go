@@ -1,9 +1,11 @@
 package gui
 
 import (
+	"context"
 	"fmt"
 
 	tl "github.com/JoelOtter/termloop"
+	"github.com/google/uuid"
 )
 
 const (
@@ -13,142 +15,168 @@ const (
 
 var letters = []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}
 
-// BoardConfig holds configuration parameters for Board struct.
-type BoardConfig struct {
-	HitColor  string
-	MissColor string
-	ShipColor string
-
-	HitChar  byte
-	MissChar byte
-	ShipChar byte
+type tile struct {
+	rec *rectangle
+	txt *tl.Text
 }
 
+// Board represents a single board.
 type Board struct {
-	rectangles     []*tl.Rectangle
-	texts          []*tl.Text
-	clicableStates []*clickable
-	states         []*tl.Rectangle
-	statesTexts    []*tl.Text
+	id    uuid.UUID
+	cfg   *BoardConfig
+	tiles []*tile
+	ch    chan string
 
 	x int
 	y int
-
-	statesConf map[State]stateColorAndChar
-
-	borderDrawed bool
 }
 
-func newBoard(x, y int, c *BoardConfig) (*Board, error) {
-	statesConf, err := parseStatesFromConfig(c)
-	if err != nil {
-		return nil, err
+// BoardConfig holds configuration parameters for Board struct.
+type BoardConfig struct {
+	RulerColor Color
+	TextColor  Color
+	EmptyColor Color
+	HitColor   Color
+	MissColor  Color
+	ShipColor  Color
+	EmptyChar  byte
+	HitChar    byte
+	MissChar   byte
+	ShipChar   byte
+}
+
+// NewBoardConfig returns a new config with default values.
+func NewBoardConfig() *BoardConfig {
+	return &BoardConfig{
+		RulerColor: White,
+		TextColor:  Black,
+		EmptyColor: Blue,
+		HitColor:   Red,
+		MissColor:  Grey,
+		ShipColor:  Green,
+		EmptyChar:  '~',
+		HitChar:    'H',
+		MissChar:   'M',
+		ShipChar:   'S',
 	}
+}
+
+func (c *BoardConfig) getColor(state State) Color {
+	switch state {
+	case Hit:
+		return c.HitColor
+	case Miss:
+		return c.MissColor
+	case Ship:
+		return c.ShipColor
+	default:
+		return c.EmptyColor
+	}
+}
+
+func (c *BoardConfig) getChar(state State) byte {
+	switch state {
+	case Hit:
+		return c.HitChar
+	case Miss:
+		return c.MissChar
+	case Ship:
+		return c.ShipChar
+	default:
+		return c.EmptyChar
+	}
+}
+
+// NewBoard returns a new Board struct.
+// X and Y are the coordinates of the top left corner of the board.
+// If no config is provided, default values are used.
+func NewBoard(x, y int, cfg *BoardConfig) *Board {
+	if cfg == nil {
+		cfg = NewBoardConfig()
+	}
+
 	b := &Board{
-		x:          x,
-		y:          y,
-		statesConf: statesConf,
+		id:  uuid.New(),
+		cfg: cfg,
+		ch:  make(chan string),
+		x:   x,
+		y:   y,
 	}
 
-	for i := 1; i < 11; i++ {
-		newX := i*fieldWidth + i
-		newY := i*fieldHeight + i
+	b.tiles = make([]*tile, 11*11)
 
-		b.rectangles = append(b.rectangles, tl.NewRectangle(x+newX, y, fieldWidth, fieldHeight, tl.ColorWhite))
-		b.rectangles = append(b.rectangles, tl.NewRectangle(x, y+newY, fieldWidth, fieldHeight, tl.ColorWhite))
-
-		b.texts = append(b.texts, tl.NewText(x+newX+(fieldWidth/2), y+(fieldHeight/2), letters[i-1], defaultTextFG, defaultTextBG))
-		b.texts = append(b.texts, tl.NewText(x+(fieldWidth/2), y+newY+(fieldHeight/2), fmt.Sprintf("%d", i), defaultTextFG, defaultTextBG))
-
-	}
-
-	return b, nil
-}
-
-func (b *Board) setStates(states [10][10]State) *Board {
-	b.states = make([]*tl.Rectangle, 0)
-	b.statesTexts = make([]*tl.Text, 0)
-	b.clicableStates = make([]*clickable, 0)
-
-	for i := 1; i < 11; i++ {
-		for j := 1; j < 11; j++ {
-			newX := i*fieldWidth + i
-			newY := j*fieldHeight + j
-			color, text := b.statesConf[states[i-1][j-1]].color, b.statesConf[states[i-1][j-1]].char
-
-			b.states = append(b.states, tl.NewRectangle(b.x+newX, b.y+newY, fieldWidth, fieldHeight, color))
-			b.statesTexts = append(b.statesTexts, tl.NewText(b.x+newX+(fieldWidth/2), b.y+newY+(fieldHeight/2), text, tl.ColorBlack, color))
+	for n := 1; n <= 10; n++ {
+		newX := n*fieldWidth + n
+		horizontal := &tile{
+			rec: newRectangle(tl.NewRectangle(x+newX, y, fieldWidth, fieldHeight, b.cfg.RulerColor.toAttr())),
+			txt: tl.NewText(x+newX+(fieldWidth/2), y+(fieldHeight/2), letters[n-1], b.cfg.TextColor.toAttr(), b.cfg.RulerColor.toAttr()),
 		}
+		b.tiles[n] = horizontal
+
+		newY := n*fieldHeight + n
+		vertical := &tile{
+			rec: newRectangle(tl.NewRectangle(x, y+newY, fieldWidth, fieldHeight, b.cfg.RulerColor.toAttr())),
+			txt: tl.NewText(x+(fieldWidth/2), y+newY+(fieldHeight/2), fmt.Sprintf("%d", n), b.cfg.TextColor.toAttr(), b.cfg.RulerColor.toAttr()),
+		}
+		b.tiles[n*11] = vertical
 	}
 
-	return b
-}
-
-func (b *Board) setClicableStates(states [10][10]State) *Board {
-	b.states = make([]*tl.Rectangle, 0)
-	b.statesTexts = make([]*tl.Text, 0)
-	b.clicableStates = make([]*clickable, 0)
-
-	for i := 1; i < 11; i++ {
-		for j := 1; j < 11; j++ {
-			newX := i*fieldWidth + i
-			newY := j*fieldHeight + j
-			color, text := b.statesConf[states[i-1][j-1]].color, b.statesConf[states[i-1][j-1]].char
-
-			rec := tl.NewRectangle(b.x+newX, b.y+newY, fieldWidth, fieldHeight, color)
-			if states[i-1][j-1].clickAllowed() {
-				b.clicableStates = append(b.clicableStates, newClickable(
-					fmt.Sprintf("%s%d", letters[i-1], j), rec))
-			} else {
-				b.states = append(b.states, rec)
+	for y := 1; y <= 10; y++ {
+		for x := 1; x <= 10; x++ {
+			newX := x*fieldWidth + x
+			newY := y*fieldHeight + y
+			tile := &tile{
+				rec: newClickableRectangle(
+					tl.NewRectangle(b.x+newX, b.y+newY, fieldWidth, fieldHeight, b.cfg.EmptyColor.toAttr()),
+					fmt.Sprintf("%s%d", letters[x-1], y),
+					b.ch,
+				),
+				txt: tl.NewText(b.x+newX+(fieldWidth/2), b.y+newY+(fieldHeight/2), string(b.cfg.EmptyChar), b.cfg.TextColor.toAttr(), b.cfg.EmptyColor.toAttr()),
 			}
-
-			b.statesTexts = append(b.statesTexts, tl.NewText(b.x+newX+(fieldWidth/2), b.y+newY+(fieldHeight/2), text, tl.ColorBlack, color))
+			b.tiles[x+y*11] = tile
 		}
 	}
 
 	return b
 }
 
-func stateFromConfOrDefault(s State, confColor, confChar string) (stateColorAndChar, error) {
-	var scc stateColorAndChar
-	if confColor != "" {
-		r, g, b, err := rgbFromString(confColor)
-		if err != nil {
-			return stateColorAndChar{}, err
+// SetStates sets the states of the board. The states are represented 
+// as a 10x10 matrix, where the first index is the X coordinate and 
+// the second index is the Y coordinate.
+// Example: states[0][0] is the state of the field A1.
+func (b *Board) SetStates(states [10][10]State) {
+	for y := 1; y <= 10; y++ {
+		for x := 1; x <= 10; x++ {
+			state := states[x-1][y-1]
+			color := b.cfg.getColor(state).toAttr()
+			b.tiles[x+y*11].rec.SetColor(color)
+			b.tiles[x+y*11].txt.SetColor(b.cfg.TextColor.toAttr(), color)
+			b.tiles[x+y*11].txt.SetText(string(b.cfg.getChar(state)))
 		}
-		scc.color = tl.RgbTo256Color(r, g, b)
-	} else {
-		scc.color = defaultColorState[s].color
 	}
 
-	if confChar != "" {
-		scc.char = confChar
-	} else {
-		scc.char = defaultColorState[s].char
-	}
-
-	return scc, nil
 }
 
-func parseStatesFromConfig(c *BoardConfig) (map[State]stateColorAndChar, error) {
-	var err error
-	s := make(map[State]stateColorAndChar, 0)
+func (b *Board) ID() uuid.UUID {
+	return b.id
+}
 
-	s[Hit], err = stateFromConfOrDefault(Hit, c.HitColor, string(c.HitChar))
-	if err != nil {
-		return nil, err
+func (b *Board) Drawables() []tl.Drawable {
+	d := []tl.Drawable{}
+	for _, t := range b.tiles[1:] {
+		d = append(d, t.rec, t.txt)
 	}
-	s[Miss], err = stateFromConfOrDefault(Miss, c.MissColor, string(c.MissChar))
-	if err != nil {
-		return nil, err
-	}
-	s[Ship], err = stateFromConfOrDefault(Ship, c.ShipColor, string(c.ShipChar))
-	if err != nil {
-		return nil, err
-	}
+	return d
+}
 
-	s[None] = defaultColorState[None]
-
-	return s, nil
+// Listen blocks until a field is clicked by the user and returns the 
+// field as a string containing coordinates. Use context to control
+// cancelation and prevent listening indefinitely.
+func (b *Board) Listen(ctx context.Context) string {
+	select {
+	case s := <-b.ch:
+		return s
+	case <-ctx.Done():
+		return ""
+	}
 }

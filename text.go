@@ -1,45 +1,64 @@
 package gui
 
-import tl "github.com/JoelOtter/termloop"
-
-const (
-	defaultTextBG = tl.ColorWhite
-	defaultTextFG = tl.ColorBlack
+import (
+	tl "github.com/JoelOtter/termloop"
+	"github.com/google/uuid"
 )
 
 type Text struct {
-	*tl.Text
+	id uuid.UUID
+	t  *tl.Text
 }
 
 // TextConfig holds configuration parameters for Text struct.
 type TextConfig struct {
-	ForegroundColor string
-	BackgroundColor string
+	FgColor Color
+	BgColor Color
 }
 
-func newText(x, y int, tc *TextConfig) (*Text, error) {
-	fgColor, bgColor := defaultTextFG, defaultTextBG
-	if tc != nil && tc.ForegroundColor != "" {
-		r, b, g, err := rgbFromString(tc.ForegroundColor)
-		if err != nil {
-			return nil, err
-		}
-		fgColor = tl.RgbTo256Color(r, g, b)
+// NewTextConfig returns a new config with default values.
+func NewTextConfig() *TextConfig {
+	return &TextConfig{
+		FgColor: Black,
+		BgColor: White,
 	}
-	if tc != nil && tc.BackgroundColor != "" {
-		r, b, g, err := rgbFromString(tc.BackgroundColor)
-		if err != nil {
-			return nil, err
-		}
-		bgColor = tl.RgbTo256Color(r, g, b)
-	}
-	t := tl.NewText(x, y, "", fgColor, bgColor)
-
-	return &Text{Text: t}, nil
 }
 
-// SetText sets the text of the Text to be text and returns Text.
-func (t *Text) SetText(text string) *Text {
-	t.Text.SetText(text)
-	return t
+// NewText returns a new Text struct.
+// X and Y are the coordinates of the top left corner of the text.
+// If no config is provided, default values are used.
+func NewText(x, y int, text string, cfg *TextConfig) *Text {
+	if cfg == nil {
+		cfg = NewTextConfig()
+	}
+	t := tl.NewText(x, y, text, cfg.FgColor.toAttr(), cfg.BgColor.toAttr())
+	return &Text{
+		id: uuid.New(),
+		t:  t,
+	}
+}
+
+// SetText sets the text of the Text struct.
+func (t *Text) SetText(text string) {
+	t.t.SetText(text)
+}
+
+// SetFgColor sets the foreground color of the Text struct.
+func (t *Text) SetFgColor(c Color) {
+	_, bg := t.t.Color()
+	t.t.SetColor(tl.RgbTo256Color(int(c.Red), int(c.Green), int(c.Blue)), bg)
+}
+
+// SetBgColor sets the background color of the Text struct.
+func (t *Text) SetBgColor(c Color) {
+	fg, _ := t.t.Color()
+	t.t.SetColor(fg, tl.RgbTo256Color(int(c.Red), int(c.Green), int(c.Blue)))
+}
+
+func (t *Text) ID() uuid.UUID {
+	return t.id
+}
+
+func (t *Text) Drawables() []tl.Drawable {
+	return []tl.Drawable{t.t}
 }
