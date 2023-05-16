@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"context"
+
 	tl "github.com/JoelOtter/termloop"
 	"github.com/google/uuid"
 )
@@ -26,14 +28,13 @@ func NewGUI(debug bool) *GUI {
 	return d
 }
 
-// Start displays the GUI and blocks until the it exits.
-// If endKey is not nil, the GUI will exit when the key is pressed.
-// Default if Ctrl+C.
-func (g *GUI) Start(endKey *tl.Key) {
+// Start displays the GUI and blocks until endKey is pressed or 
+// context is done. If endKey is nil it defaults to Ctrl+C.
+func (g *GUI) Start(ctx context.Context, endKey *tl.Key) {
 	if endKey != nil {
 		g.game.SetEndKey(*endKey)
 	}
-	g.game.Start()
+	g.game.Start(ctx)
 }
 
 // Draw draws the given Drawable on the screen.
