@@ -13,3 +13,5 @@ require (
 	github.com/nsf/termbox-go v1.1.1 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 )
+
+replace github.com/JoelOtter/termloop => github.com/grupawp/termloop v0.0.0-20230516071741-9af5ae3e8663

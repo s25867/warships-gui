@@ -1,7 +1,7 @@
-github.com/JoelOtter/termloop v0.0.0-20210806173944-5f7c38744afb h1:wXR5fXM/+4VFARcWVtjwb0wxfQl5RxemkNzzs2Jb918=
-github.com/JoelOtter/termloop v0.0.0-20210806173944-5f7c38744afb/go.mod h1:Tie7OOEgasw91JpzA8UywemPyGehxZ06Gqtl5B1/vXI=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/grupawp/termloop v0.0.0-20230516071741-9af5ae3e8663 h1:i7NFke0u3aDNkrcbeNkIvVlTi+JjUUwyWVUVorvudpw=
+github.com/grupawp/termloop v0.0.0-20230516071741-9af5ae3e8663/go.mod h1:fsqxxfr00T/zMXg4CdhvRgqTMKC+AOJd58rPAPtMKvs=
 github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/mattn/go-runewidth v0.0.14 h1:+xnbZSEeDbOIg5/mE6JF0w6n9duR1l3/WmbinWVwUuU=
 github.com/mattn/go-runewidth v0.0.14/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
