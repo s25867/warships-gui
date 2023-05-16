@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	tl "github.com/JoelOtter/termloop"
+	tl "github.com/grupawp/termloop"
 	"github.com/google/uuid"
 )
 

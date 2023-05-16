@@ -1,7 +1,7 @@
 package gui
 
 import (
-	tl "github.com/JoelOtter/termloop"
+	tl "github.com/grupawp/termloop"
 )
 
 type rectangle struct {

@@ -3,7 +3,7 @@ package gui
 import (
 	"context"
 
-	tl "github.com/JoelOtter/termloop"
+	tl "github.com/grupawp/termloop"
 	"github.com/google/uuid"
 )
 
