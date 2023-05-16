@@ -23,6 +23,8 @@ go get github.com/grupawp/warships-gui/v2
 package main
 
 import (
+	"context"
+
 	gui "github.com/grupawp/warships-gui/v2"
 )
 
@@ -38,7 +40,8 @@ func main() {
 	}
 	board.SetStates(states)
 
-	ui.Start(nil)
+	ctx := context.Background()
+	ui.Start(ctx, nil)
 }
 
 ```
@@ -49,6 +52,8 @@ func main() {
 package main
 
 import (
+	"context"
+
 	gui "github.com/grupawp/warships-gui/v2"
 )
 
@@ -56,7 +61,7 @@ func main() {
 	ui := gui.NewGUI(true)
 	txt := gui.NewText(1, 1, "Press Ctrl+C to exit", nil)
 	ui.Draw(txt)
-	ui.Start(nil)
+	ui.Start(context.TODO(), nil)
 }
 ```
 
@@ -89,7 +94,7 @@ func main() {
 		}
 	}()
 
-	ui.Start(nil)
+	ui.Start(context.TODO(), nil)
 }
 ```
 
