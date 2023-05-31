@@ -3,16 +3,15 @@ module github.com/grupawp/warships-gui/v2
 go 1.19
 
 retract (
-    // those versions contain incorrect import
-    v2.1.0 
-	v2.1.1
 	v2.1.2
+	v2.1.1
+	// those versions contain incorrect import
+	v2.1.0
 )
 
-
 require (
-	github.com/grupawp/termloop v0.0.0-20230516071741-9af5ae3e8663
 	github.com/google/uuid v1.3.0
+	github.com/grupawp/termloop v0.0.0-20230531144437-277a1cbf4c14
 
 )
 
