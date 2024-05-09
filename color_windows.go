@@ -24,6 +24,6 @@ var (
 	Black = Color(termbox.ColorBlack)
 	Blue  = Color(termbox.ColorBlue)
 	Red   = Color(termbox.ColorRed)
-	Grey  = Color(termbox.ColorLightGray)
+	Grey  = Color(termbox.ColorDarkGray)
 	Green = Color(termbox.ColorGreen)
 )
