@@ -1,8 +1,8 @@
 package gui
 
 import (
-	tl "github.com/grupawp/termloop"
 	"github.com/google/uuid"
+	tl "github.com/grupawp/termloop"
 )
 
 type Text struct {
@@ -46,13 +46,13 @@ func (t *Text) SetText(text string) {
 // SetFgColor sets the foreground color of the Text struct.
 func (t *Text) SetFgColor(c Color) {
 	_, bg := t.t.Color()
-	t.t.SetColor(tl.RgbTo256Color(int(c.Red), int(c.Green), int(c.Blue)), bg)
+	t.t.SetColor(c.toAttr(), bg)
 }
 
 // SetBgColor sets the background color of the Text struct.
 func (t *Text) SetBgColor(c Color) {
 	fg, _ := t.t.Color()
-	t.t.SetColor(fg, tl.RgbTo256Color(int(c.Red), int(c.Green), int(c.Blue)))
+	t.t.SetColor(fg, c.toAttr())
 }
 
 func (t *Text) ID() uuid.UUID {
