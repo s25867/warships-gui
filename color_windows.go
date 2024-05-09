@@ -22,8 +22,8 @@ func (c Color) toAttr() tl.Attr {
 var (
 	White = Color(termbox.ColorWhite)
 	Black = Color(termbox.ColorBlack)
-	Blue  = Color(termbox.ColorLightBlue)
+	Blue  = Color(termbox.ColorBlue)
 	Red   = Color(termbox.ColorRed)
-	Grey  = Color(termbox.ColorDarkGray)
+	Grey  = Color(termbox.ColorLightGray)
 	Green = Color(termbox.ColorGreen)
 )
