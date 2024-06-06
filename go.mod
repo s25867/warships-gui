@@ -1,4 +1,4 @@
-module github.com/grupawp/warships-gui/v2
+module github.com/s25867/warships-gui/v2
 
 go 1.19
 
