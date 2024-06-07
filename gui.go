@@ -4,57 +4,13 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/grupawp/termloop"
 	tl "github.com/grupawp/termloop"
 )
 
 type GUI struct {
 	game      *tl.Game
 	drawables map[uuid.UUID][]tl.Drawable
-}
-
-type Button struct {
-	tl.Rectangle
-	text     *tl.Text
-	callback func()
-	id       uuid.UUID
-}
-
-func NewButton(x, y int, width, height int, text string, callback func()) *Button {
-	button := &Button{
-		Rectangle: *tl.NewRectangle(x, y, width, height, tl.ColorWhite),
-		text:      tl.NewText(x, y, text, tl.ColorBlack, tl.ColorDefault),
-		callback:  callback,
-		id:        uuid.New(),
-	}
-	return button
-}
-
-func (b *Button) ID() uuid.UUID {
-	return b.id
-}
-
-func (b *Button) Contains(x, y int) bool {
-	bx, by := b.Position()
-	bw, bh := b.Size()
-	return x >= bx && x < bx+bw && y >= by && y < by+bh
-}
-
-func (b *Button) Draw(s *termloop.Screen) {
-	b.Rectangle.Draw(s)
-}
-
-func (b *Button) Tick(ev termloop.Event) {
-	// todo
-}
-
-func (b *Button) Drawables() []tl.Drawable {
-	return []tl.Drawable{&b.Rectangle, b.text}
-}
-
-func (g *GUI) DrawButton(x, y int, width, height int, text string, callback func()) {
-	button := NewButton(x, y, width, height, text, callback)
-	g.Draw(button)
+	buttons   map[uuid.UUID]*Button
 }
 
 // NewGUI returns a new GUI instance.
@@ -68,6 +24,7 @@ func NewGUI(debug bool) *GUI {
 	d := &GUI{
 		game:      game,
 		drawables: make(map[uuid.UUID][]tl.Drawable),
+		buttons:   make(map[uuid.UUID]*Button),
 	}
 
 	return d
@@ -87,6 +44,15 @@ func (g *GUI) Draw(d Drawable) {
 	g.drawables[d.ID()] = d.Drawables()
 	for _, di := range g.drawables[d.ID()] {
 		g.game.Screen().AddEntity(di)
+	}
+}
+
+// DrawButton adds a button to the GUI at the specified position with the given label and callback function.
+func (g *GUI) DrawButton(x, y, width, height int, label string, callback func()) {
+	button := NewButton(x, y, width, height, label, callback)
+	g.buttons[button.ID()] = button
+	for _, drawable := range button.Drawables() {
+		g.game.Screen().AddEntity(drawable)
 	}
 }
 
