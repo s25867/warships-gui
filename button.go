@@ -7,6 +7,7 @@ import (
 
 type Button struct {
 	id       uuid.UUID
+	gui      *GUI
 	x        int
 	y        int
 	width    int
@@ -18,9 +19,10 @@ type Button struct {
 }
 
 // NewButton creates a new Button at the specified position with the given dimensions, label, and callback function.
-func NewButton(x, y, width, height int, label string, callback func()) *Button {
+func NewButton(gui *GUI, x, y, width, height int, label string, callback func()) *Button {
 	btn := &Button{
 		id:       uuid.New(),
+		gui:      gui,
 		x:        x,
 		y:        y,
 		width:    width,
@@ -45,7 +47,9 @@ func (b *Button) Drawables() []tl.Drawable {
 // Tick handles mouse click events to trigger the button's callback.
 func (b *Button) Tick(e tl.Event) {
 	if e.Type == tl.EventMouse {
+		b.gui.Log("Mouse event detected at (%d, %d)", e.MouseX, e.MouseY)
 		if e.Key == tl.MouseLeft && e.MouseX >= b.x && e.MouseX < b.x+b.width && e.MouseY >= b.y && e.MouseY < b.y+b.height {
+			b.gui.Log("Button clicked")
 			b.callback()
 		}
 	}

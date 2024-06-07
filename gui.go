@@ -2,6 +2,7 @@ package gui
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	tl "github.com/grupawp/termloop"
@@ -11,6 +12,7 @@ type GUI struct {
 	game      *tl.Game
 	drawables map[uuid.UUID][]tl.Drawable
 	buttons   map[uuid.UUID]*Button
+	debugText *tl.Text
 }
 
 // NewGUI returns a new GUI instance.
@@ -25,7 +27,10 @@ func NewGUI(debug bool) *GUI {
 		game:      game,
 		drawables: make(map[uuid.UUID][]tl.Drawable),
 		buttons:   make(map[uuid.UUID]*Button),
+		debugText: tl.NewText(0, 0, "", tl.ColorWhite, tl.ColorBlack),
 	}
+
+	game.Screen().AddEntity(d.debugText)
 
 	return d
 }
@@ -49,7 +54,7 @@ func (g *GUI) Draw(d Drawable) {
 
 // DrawButton adds a button to the GUI at the specified position with the given label and callback function.
 func (g *GUI) DrawButton(x, y, width, height int, label string, callback func()) {
-	button := NewButton(x, y, width, height, label, callback)
+	button := NewButton(g, x, y, width, height, label, callback)
 	g.buttons[button.ID()] = button
 	for _, drawable := range button.Drawables() {
 		g.game.Screen().AddEntity(drawable)
@@ -69,5 +74,7 @@ func (g *GUI) Remove(d Drawable) {
 // If debug mode is on, the formatted log will be printed to the
 // terminal when GUI exits.
 func (g *GUI) Log(format string, a ...any) {
-	g.game.Log(format, a...)
+	message := fmt.Sprintf(format, a...)
+	g.debugText.SetText(message)
+	g.game.Log(message)
 }
