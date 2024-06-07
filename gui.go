@@ -45,7 +45,7 @@ func (b *Button) Draw(s *termloop.Screen) {
 }
 
 func (b *Button) Tick(ev termloop.Event) {
-	// implement as needed
+	// todo
 }
 
 func (b *Button) Drawables() []tl.Drawable {
