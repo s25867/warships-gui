@@ -132,3 +132,7 @@ func (b *Button) SetText(text string) {
 func (b *Button) Drawables() []tl.Drawable {
 	return []tl.Drawable{b}
 }
+
+func (b *Button) GetText() string {
+	return b.txt.Text()
+}

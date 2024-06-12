@@ -23,10 +23,12 @@ func (c Color) toAttr() tl.Attr {
 }
 
 var (
-	White = Color{Red: 208, Green: 208, Blue: 208}
-	Black = Color{Red: 21, Green: 21, Blue: 21}
-	Blue  = Color{Red: 108, Green: 153, Blue: 187}
-	Red   = Color{Red: 172, Green: 65, Blue: 66}
-	Grey  = Color{Red: 105, Green: 105, Blue: 105}
-	Green = Color{Red: 126, Green: 142, Blue: 0}
+	White   = Color{Red: 208, Green: 208, Blue: 208}
+	Black   = Color{Red: 21, Green: 21, Blue: 21}
+	Blue    = Color{Red: 108, Green: 153, Blue: 187}
+	Red     = Color{Red: 172, Green: 65, Blue: 66}
+	Grey    = Color{Red: 105, Green: 105, Blue: 105}
+	Green   = Color{Red: 126, Green: 142, Blue: 0}
+	Magenta = Color{Red: 143, Green: 0, Blue: 143}
+	Yellow  = Color{Red: 255, Green: 215, Blue: 0}
 )

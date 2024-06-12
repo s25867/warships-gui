@@ -27,11 +27,11 @@ func NewTextConfig() *TextConfig {
 // NewText returns a new Text struct.
 // X and Y are the coordinates of the top left corner of the text.
 // If no config is provided, default values are used.
-func NewText(x, y int, text string, cfg *TextConfig) *Text {
-	if cfg == nil {
-		cfg = NewTextConfig()
+func NewText(x, y int, text string, config *TextConfig) *Text {
+	if config == nil {
+		config = NewTextConfig()
 	}
-	t := tl.NewText(x, y, text, cfg.FgColor.toAttr(), cfg.BgColor.toAttr())
+	t := tl.NewText(x, y, text, config.FgColor.toAttr(), config.BgColor.toAttr())
 	return &Text{
 		id: uuid.New(),
 		t:  t,
